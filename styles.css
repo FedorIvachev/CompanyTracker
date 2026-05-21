@@ -331,6 +331,25 @@ button:active {
   white-space: nowrap;
 }
 
+.primary-btn {
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 8px 16px;
+  border-radius: 12px;
+  color: #050b17;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 140ms ease;
+  white-space: nowrap;
+}
+
+.primary-btn:hover {
+  background: var(--accent-strong);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.2);
+}
+
 .link-btn:hover {
   background: rgba(56, 189, 248, 0.12);
   border-color: var(--accent);

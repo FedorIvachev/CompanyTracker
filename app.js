@@ -39,8 +39,8 @@ const emptyState = document.getElementById("emptyState");
 const clearAllBtn = document.getElementById("clearAllBtn");
 const exportBtn = document.getElementById("exportBtn");
 const importInput = document.getElementById("importInput");
+const aiImportInput = document.getElementById("aiImportInput");
 
-const aiParseBtn = document.getElementById("aiParseBtn");
 const aiStatus = document.getElementById("aiStatus");
 const aiLog = document.getElementById("aiLog");
 const aiCurrentTask = document.getElementById("aiCurrentTask");
@@ -248,71 +248,89 @@ async function callAzureOpenAI(messages) {
   return await response.json();
 }
 
-aiParseBtn.addEventListener("click", async () => {
-  if (state.companies.length === 0) {
-    alert("No companies to parse. Export your list to CSV first, or just run this on existing data?");
-    return;
-  }
+aiImportInput.addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
 
   aiStatus.hidden = false;
-  aiLog.textContent = "Initializing...\n";
+  aiLog.textContent = `Reading file: ${file.name}...\n`;
   aiProgressFill.style.width = "10%";
-  aiCurrentTask.textContent = "Preparing companies for AI analysis...";
+  aiCurrentTask.textContent = "Uploading to GPT-4.1 for parsing...";
 
-  try {
-    const companiesJson = JSON.stringify(state.companies, null, 2);
-    aiLog.textContent += `Processing ${state.companies.length} entries...\n`;
+  const reader = new FileReader();
+  reader.onload = async (event) => {
+    const rawText = event.target.result;
+    
+    try {
+      aiLog.textContent += `Original content length: ${rawText.length} bytes.\n`;
+      aiLog.textContent += "Calling Azure OpenAI...\n";
+      aiProgressFill.style.width = "30%";
 
-    const prompt = `
-      You are an expert career assistant. I will provide you with a JSON list of companies I am tracking.
-      Your task is to analyze each company and "enrich" the notes if they are sparse, or categorize them.
+      const prompt = `
+        You are an expert data parser. You are given a raw CSV (or unstructured text) representing a list of companies someone is tracking for job applications.
+        
+        Extract the data and return a VALID JSON array of objects. 
+        Each object MUST have these keys:
+        - "name": Company name
+        - "website": URL or domain (if found)
+        - "status": One of "Apply", "Interview", "Offer", "Rejected", "Wishlist". Deduce or default to "Apply".
+        - "notes": Any specific notes or descriptions.
+        - "location": City/Country if mentioned.
+        - "otherInfo": Any other metadata.
+
+        CSV/TEXT DATA:
+        """
+        ${rawText}
+        """
+
+        Response: RETURN ONLY THE JSON ARRAY. NO MARKDOWN PROSE.
+      `;
+
+      const result = await callAzureOpenAI([
+        { role: "system", content: "You are a data extraction tool. You convert raw CSV/text into a clean JSON array of company objects." },
+        { role: "user", content: prompt }
+      ]);
+
+      aiProgressFill.style.width = "70%";
+      aiCurrentTask.textContent = "Processing response...";
       
-      Return a VALID JSON array of company objects. Each object MUST match this schema:
-      {
-        "id": number,
-        "name": string,
-        "website": string,
-        "status": string (Apply/Interview/Offer/Rejected/Wishlist),
-        "notes": string (keep existing info, but enhance with context if possible),
-        "location": string,
-        "otherInfo": string
+      const content = result.choices[0].message.content;
+      // Extract JSON if model wrapped it in markdown
+      const jsonMatch = content.match(/\[[\s\S]*\]/);
+      const parsedData = JSON.parse(jsonMatch ? jsonMatch[0] : content);
+
+      if (Array.isArray(parsedData)) {
+        // Assign new IDs to avoid collisions
+        const startId = Date.now();
+        const finalData = parsedData.map((item, idx) => ({
+          ...item,
+          id: startId + idx,
+          status: item.status || "Apply",
+          notes: item.notes || "",
+          website: item.website || "",
+          location: item.location || "",
+          otherInfo: item.otherInfo || ""
+        }));
+
+        state.companies = [...finalData, ...state.companies]; // Prepend new items
+        saveCompanies();
+        renderCompanies();
+        aiLog.textContent += `Success! Imported ${finalData.length} companies via AI parser.\n`;
       }
 
-      DATA:
-      ${companiesJson}
-    `;
-
-    aiProgressFill.style.width = "40%";
-    aiCurrentTask.textContent = "Calling Azure OpenAI (GPT-4.1)...";
-    
-    const result = await callAzureOpenAI([
-      { role: "system", content: "You are a job tracking assistant that enriches company lists. Always return valid JSON." },
-      { role: "user", content: prompt }
-    ]);
-
-    aiProgressFill.style.width = "80%";
-    aiCurrentTask.textContent = "Parsing response...";
-    
-    const content = result.choices[0].message.content;
-    // Extract JSON if model wrapped it in markdown
-    const jsonMatch = content.match(/\[[\s\S]*\]/);
-    const enrichedData = JSON.parse(jsonMatch ? jsonMatch[0] : content);
-
-    if (Array.isArray(enrichedData)) {
-      state.companies = enrichedData;
-      saveCompanies();
-      renderCompanies();
-      aiLog.textContent += "Success! Companies enriched and saved.\n";
+      aiProgressFill.style.width = "100%";
+      aiCurrentTask.textContent = "Done!";
+      
+    } catch (error) {
+      aiLog.textContent += `\nERROR: ${error.message}\n`;
+      aiCurrentTask.textContent = "Failed.";
+      aiProgressFill.style.backgroundColor = "var(--danger)";
+    } finally {
+      aiImportInput.value = ""; // Clear for next use
     }
+  };
 
-    aiProgressFill.style.width = "100%";
-    aiCurrentTask.textContent = "Task complete.";
-
-  } catch (error) {
-    aiLog.textContent += `\nERROR: ${error.message}\n`;
-    aiCurrentTask.textContent = "Failed.";
-    aiProgressFill.style.backgroundColor = "var(--danger)";
-  }
+  reader.readAsText(file);
 });
 
 function renderCompanies() {
