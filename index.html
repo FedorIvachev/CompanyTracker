@@ -31,13 +31,43 @@
       <section class="panel">
         <form id="companyForm" class="company-form" autocomplete="off">
           <input type="hidden" id="editId" name="editId" />
+          <div class="form-grid">
+            <label>
+              <span>Company</span>
+              <input id="companyName" name="companyName" type="text" placeholder="Acme Inc." maxlength="120" required />
+            </label>
+            <label>
+              <span>Position</span>
+              <input id="position" name="position" type="text" placeholder="Frontend Developer" maxlength="120" required />
+            </label>
+            <label>
+              <span>Office Location</span>
+              <input id="location" name="location" type="text" placeholder="Shanghai / Remote" maxlength="120" />
+            </label>
+            <label>
+              <span>Interview State</span>
+              <select id="interviewState" name="interviewState">
+                <option value="Researching">Researching</option>
+                <option value="Applied">Applied</option>
+                <option value="Interviewing">Interviewing</option>
+                <option value="Technical Test">Technical Test</option>
+                <option value="Offer">Offer</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Ghosted">Ghosted</option>
+              </select>
+            </label>
+          </div>
           <label>
-            <span>Company</span>
-            <input id="companyName" name="companyName" type="text" placeholder="Acme Inc." maxlength="120" required />
+            <span>Position Description</span>
+            <textarea id="positionDescription" name="positionDescription" rows="2" placeholder="Main responsibilities, requirements..."></textarea>
           </label>
           <label>
-            <span>Info</span>
-            <textarea id="companyInfo" name="companyInfo" rows="4" placeholder="Why it matters, role context, contacts, next step..." maxlength="1000" required></textarea>
+            <span>Description in Chinese (中文描述)</span>
+            <textarea id="descriptionZh" name="descriptionZh" rows="2" placeholder="职位描述..."></textarea>
+          </label>
+          <label>
+            <span>Other Info</span>
+            <textarea id="otherInfo" name="otherInfo" rows="3" placeholder="Contacts, salary range, links..."></textarea>
           </label>
           <div class="form-actions">
             <button type="submit" id="submitBtn" class="primary">Add company</button>

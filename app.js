@@ -3,7 +3,13 @@ const storageKey = "company-tracker-items";
 const companyForm = document.getElementById("companyForm");
 const editIdInput = document.getElementById("editId");
 const companyNameInput = document.getElementById("companyName");
-const companyInfoInput = document.getElementById("companyInfo");
+const positionInput = document.getElementById("position");
+const locationInput = document.getElementById("location");
+const interviewStateInput = document.getElementById("interviewState");
+const positionDescriptionInput = document.getElementById("positionDescription");
+const descriptionZhInput = document.getElementById("descriptionZh");
+const otherInfoInput = document.getElementById("otherInfo");
+
 const submitBtn = document.getElementById("submitBtn");
 const cancelEditBtn = document.getElementById("cancelEditBtn");
 const companyList = document.getElementById("companyList");
@@ -50,14 +56,38 @@ function createCompanyCard(company) {
   topRow.className = "company-card-top";
 
   const content = document.createElement("div");
+  content.style.width = "100%";
+
+  const stateBadge = document.createElement("span");
+  const stateClass = `state-${(company.interviewState || 'researching').toLowerCase().replace(' ', '-')}`;
+  stateBadge.className = `badge ${stateClass}`;
+  stateBadge.textContent = company.interviewState || 'Researching';
 
   const name = document.createElement("h3");
   name.className = "company-name";
   name.textContent = company.name;
 
-  const info = document.createElement("p");
-  info.className = "company-info";
-  info.textContent = company.info;
+  const subHeader = document.createElement("p");
+  subHeader.style.color = "var(--accent)";
+  subHeader.style.fontSize = "0.95rem";
+  subHeader.style.margin = "-4px 0 12px";
+  subHeader.textContent = company.position;
+
+  const detailGrid = document.createElement("div");
+  detailGrid.className = "detail-grid";
+
+  const addDetail = (label, value, isZh = false) => {
+    if (!value) return;
+    const div = document.createElement("div");
+    div.className = "detail-item";
+    div.innerHTML = `<span class="detail-label">${label}</span><p class="detail-value ${isZh ? 'zh-text' : ''}">${value}</p>`;
+    detailGrid.append(div);
+  };
+
+  addDetail("Location", company.location);
+  addDetail("Position Description", company.positionDescription);
+  addDetail("Chinese Description", company.descriptionZh, true);
+  addDetail("Other Info", company.otherInfo);
 
   const meta = document.createElement("div");
   meta.className = "company-meta";
@@ -75,7 +105,13 @@ function createCompanyCard(company) {
   editButton.addEventListener("click", () => {
     editIdInput.value = company.id;
     companyNameInput.value = company.name;
-    companyInfoInput.value = company.info;
+    positionInput.value = company.position || "";
+    locationInput.value = company.location || "";
+    interviewStateInput.value = company.interviewState || "Researching";
+    positionDescriptionInput.value = company.positionDescription || "";
+    descriptionZhInput.value = company.descriptionZh || "";
+    otherInfoInput.value = company.otherInfo || "";
+    
     submitBtn.textContent = "Update company";
     cancelEditBtn.hidden = false;
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -92,7 +128,7 @@ function createCompanyCard(company) {
     renderCompanies();
   });
 
-  content.append(name, info);
+  content.append(stateBadge, name, subHeader, detailGrid);
   meta.append(time, editButton, deleteButton);
   topRow.append(content);
   item.append(topRow, meta);
@@ -123,11 +159,10 @@ function renderCompanies() {
   companyList.append(fragment);
 }
 
-function addCompany(name, info) {
+function addCompany(data) {
   state.companies.unshift({
     id: crypto.randomUUID(),
-    name,
-    info,
+    ...data,
     createdAt: new Date().toISOString(),
   });
 
@@ -135,13 +170,12 @@ function addCompany(name, info) {
   renderCompanies();
 }
 
-function updateCompany(id, name, info) {
+function updateCompany(id, data) {
   const index = state.companies.findIndex(c => c.id === id);
   if (index !== -1) {
     state.companies[index] = {
       ...state.companies[index],
-      name,
-      info,
+      ...data,
       updatedAt: new Date().toISOString()
     };
     saveCompanies();
@@ -160,17 +194,25 @@ companyForm.addEventListener("submit", (event) => {
   event.preventDefault();
 
   const id = editIdInput.value;
-  const name = companyNameInput.value.trim();
-  const info = companyInfoInput.value.trim();
+  const data = {
+    name: companyNameInput.value.trim(),
+    position: positionInput.value.trim(),
+    location: locationInput.value.trim(),
+    interviewState: interviewStateInput.value,
+    positionDescription: positionDescriptionInput.value.trim(),
+    descriptionZh: descriptionZhInput.value.trim(),
+    otherInfo: otherInfoInput.value.trim()
+  };
 
-  if (!name || !info) {
+  if (!data.name || !data.position) {
+    alert("Company and Position are required.");
     return;
   }
 
   if (id) {
-    updateCompany(id, name, info);
+    updateCompany(id, data);
   } else {
-    addCompany(name, info);
+    addCompany(data);
   }
   
   resetForm();
@@ -209,9 +251,18 @@ exportBtn.addEventListener("click", () => {
 
   try {
     console.log("[EXPORT] Generating CSV string...");
-    const headers = "Name,Info,CreatedAt";
+    const headers = "Name,Position,Location,InterviewState,PositionDescription,DescriptionZh,OtherInfo,CreatedAt";
     const rows = state.companies.map((c, i) => {
-      const row = `${escapeCSV(c.name)},${escapeCSV(c.info)},${escapeCSV(c.createdAt)}`;
+      const row = [
+        escapeCSV(c.name),
+        escapeCSV(c.position),
+        escapeCSV(c.location),
+        escapeCSV(c.interviewState),
+        escapeCSV(c.positionDescription),
+        escapeCSV(c.descriptionZh),
+        escapeCSV(c.otherInfo),
+        escapeCSV(c.createdAt)
+      ].join(",");
       console.log(`[EXPORT] Processing row ${i + 1}:`, c.name);
       return row;
     });
@@ -262,17 +313,18 @@ importInput.addEventListener("change", (event) => {
       const cells = row.match(/(".*?"|[^",\n\r]+)(?=\s*,|\s*$)/g);
       
       if (cells && cells.length >= 2) {
-        const name = cells[0].replace(/^"|"$/g, '').replace(/""/g, '"');
-        const info = cells[1].replace(/^"|"$/g, '').replace(/""/g, '"');
-        const createdAt = cells[2] 
-          ? cells[2].replace(/^"|"$/g, '').replace(/""/g, '"') 
-          : new Date().toISOString();
-
+        const clean = (val) => val ? val.replace(/^"|"$/g, '').replace(/""/g, '"') : "";
+        
         newData.push({
           id: crypto.randomUUID(),
-          name,
-          info,
-          createdAt
+          name: clean(cells[0]),
+          position: clean(cells[1]),
+          location: clean(cells[2]),
+          interviewState: clean(cells[3]) || "Researching",
+          positionDescription: clean(cells[4]),
+          descriptionZh: clean(cells[5]),
+          otherInfo: clean(cells[6]),
+          createdAt: clean(cells[7]) || new Date().toISOString()
         });
       }
     }
@@ -284,7 +336,7 @@ importInput.addEventListener("change", (event) => {
         renderCompanies();
       }
     } else {
-      alert("No valid data found in CSV. Expected headers: Name, Info, CreatedAt");
+      alert("No valid data found in CSV. Expected headers: Name, Position, Location, InterviewState, PositionDescription, DescriptionZh, OtherInfo, CreatedAt");
     }
     importInput.value = ""; // Reset input
   };
