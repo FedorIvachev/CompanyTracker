@@ -1,8 +1,11 @@
 const storageKey = "company-tracker-items";
 
 const companyForm = document.getElementById("companyForm");
+const editIdInput = document.getElementById("editId");
 const companyNameInput = document.getElementById("companyName");
 const companyInfoInput = document.getElementById("companyInfo");
+const submitBtn = document.getElementById("submitBtn");
+const cancelEditBtn = document.getElementById("cancelEditBtn");
 const companyList = document.getElementById("companyList");
 const companyCount = document.getElementById("companyCount");
 const emptyState = document.getElementById("emptyState");
@@ -63,6 +66,22 @@ function createCompanyCard(company) {
   time.className = "company-time";
   time.textContent = `Added ${formatDate(company.createdAt)}`;
 
+  const editButton = document.createElement("button");
+  editButton.type = "button";
+  editButton.className = "secondary";
+  editButton.style.padding = "6px 12px";
+  editButton.style.fontSize = "0.85rem";
+  editButton.textContent = "Edit";
+  editButton.addEventListener("click", () => {
+    editIdInput.value = company.id;
+    companyNameInput.value = company.name;
+    companyInfoInput.value = company.info;
+    submitBtn.textContent = "Update company";
+    cancelEditBtn.hidden = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    companyNameInput.focus();
+  });
+
   const deleteButton = document.createElement("button");
   deleteButton.type = "button";
   deleteButton.className = "danger";
@@ -74,7 +93,7 @@ function createCompanyCard(company) {
   });
 
   content.append(name, info);
-  meta.append(time, deleteButton);
+  meta.append(time, editButton, deleteButton);
   topRow.append(content);
   item.append(topRow, meta);
 
@@ -85,7 +104,13 @@ function renderCompanies() {
   companyList.replaceChildren();
 
   companyCount.textContent = String(state.companies.length);
-  emptyState.hidden = state.companies.length > 0;
+  
+  // Use a more robust way to hide the empty state
+  if (state.companies.length > 0) {
+    emptyState.style.display = "none";
+  } else {
+    emptyState.style.display = "grid";
+  }
 
   const fragment = document.createDocumentFragment();
   state.companies
@@ -110,9 +135,31 @@ function addCompany(name, info) {
   renderCompanies();
 }
 
+function updateCompany(id, name, info) {
+  const index = state.companies.findIndex(c => c.id === id);
+  if (index !== -1) {
+    state.companies[index] = {
+      ...state.companies[index],
+      name,
+      info,
+      updatedAt: new Date().toISOString()
+    };
+    saveCompanies();
+    renderCompanies();
+  }
+}
+
+function resetForm() {
+  companyForm.reset();
+  editIdInput.value = "";
+  submitBtn.textContent = "Add company";
+  cancelEditBtn.hidden = true;
+}
+
 companyForm.addEventListener("submit", (event) => {
   event.preventDefault();
 
+  const id = editIdInput.value;
   const name = companyNameInput.value.trim();
   const info = companyInfoInput.value.trim();
 
@@ -120,9 +167,18 @@ companyForm.addEventListener("submit", (event) => {
     return;
   }
 
-  addCompany(name, info);
-  companyForm.reset();
+  if (id) {
+    updateCompany(id, name, info);
+  } else {
+    addCompany(name, info);
+  }
+  
+  resetForm();
   companyNameInput.focus();
+});
+
+cancelEditBtn.addEventListener("click", () => {
+  resetForm();
 });
 
 clearAllBtn.addEventListener("click", () => {

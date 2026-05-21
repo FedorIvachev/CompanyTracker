@@ -30,6 +30,7 @@
 
       <section class="panel">
         <form id="companyForm" class="company-form" autocomplete="off">
+          <input type="hidden" id="editId" name="editId" />
           <label>
             <span>Company</span>
             <input id="companyName" name="companyName" type="text" placeholder="Acme Inc." maxlength="120" required />
@@ -39,7 +40,8 @@
             <textarea id="companyInfo" name="companyInfo" rows="4" placeholder="Why it matters, role context, contacts, next step..." maxlength="1000" required></textarea>
           </label>
           <div class="form-actions">
-            <button type="submit" class="primary">Add company</button>
+            <button type="submit" id="submitBtn" class="primary">Add company</button>
+            <button type="button" id="cancelEditBtn" class="secondary" hidden>Cancel</button>
             <button type="button" id="clearAllBtn" class="secondary">Clear all</button>
           </div>
         </form>
