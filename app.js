@@ -182,7 +182,7 @@ importInput.addEventListener("change", (event) => {
 
     for (const row of rows) {
       // Regex to split by comma but ignore commas inside quotes
-      const cells = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+      const cells = row.match(/(".*?"|[^",\n\r]+)(?=\s*,|\s*$)/g);
       
       if (cells && cells.length >= 2) {
         const name = cells[0].replace(/^"|"$/g, '').replace(/""/g, '"');

@@ -24,9 +24,6 @@ To run this project locally without a dedicated server, you can use any static h
 ```bash
 # Using Python
 python3 -m http.server 4173
-
-# Using Ruby
-ruby -run -e httpd . -p 4173
 ```
 
 Then visit `http://localhost:4173`.
