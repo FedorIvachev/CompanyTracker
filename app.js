@@ -125,10 +125,14 @@ function saveCompanies() {
 }
 
 function formatDate(value) {
+  if (!value) return "No date";
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return "Invalid date";
+  
   return new Intl.DateTimeFormat(undefined, {
     dateStyle: "medium",
     timeStyle: "short",
-  }).format(new Date(value));
+  }).format(date);
 }
 
 function createCompanyCard(company) {
