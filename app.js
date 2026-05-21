@@ -2,9 +2,9 @@ const storageKey = "company-tracker-items";
 const settingsKey = "company-tracker-settings";
 
 const defaultSettings = {
-  aiEndpoint: "",
-  aiDeployment: "gpt-4.1",
-  aiVersion: "2025-01-01-preview",
+  aiEndpoint: "https://fj.openai.azure.com/",
+  aiDeployment: "gpt-4.1-mini",
+  aiVersion: "2024-12-01-preview",
   aiKey: "",
   speechRegion: "koreacentral"
 };
