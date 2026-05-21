@@ -1,4 +1,14 @@
 const storageKey = "company-tracker-items";
+const settingsKey = "company-tracker-settings";
+
+const defaultSettings = {
+  aiEndpoint: "https://fj.openai.azure.com/",
+  aiDeployment: "gpt-4.1",
+  aiVersion: "2025-01-01-preview",
+  aiKey: "",
+  speechRegion: "koreacentral",
+  speechKey: ""
+};
 
 const companyForm = document.getElementById("companyForm");
 const editIdInput = document.getElementById("editId");
@@ -9,6 +19,19 @@ const interviewStateInput = document.getElementById("interviewState");
 const positionDescriptionInput = document.getElementById("positionDescription");
 const descriptionZhInput = document.getElementById("descriptionZh");
 const otherInfoInput = document.getElementById("otherInfo");
+
+const settingsModal = document.getElementById("settingsModal");
+const settingsForm = document.getElementById("settingsForm");
+const openSettingsBtn = document.getElementById("openSettingsBtn");
+const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+const resetSettingsBtn = document.getElementById("resetSettingsBtn");
+
+const aiEndpointInput = document.getElementById("aiEndpoint");
+const aiDeploymentInput = document.getElementById("aiDeployment");
+const aiVersionInput = document.getElementById("aiVersion");
+const aiKeyInput = document.getElementById("aiKey");
+const speechRegionInput = document.getElementById("speechRegion");
+const speechKeyInput = document.getElementById("speechKey");
 
 const submitBtn = document.getElementById("submitBtn");
 const cancelEditBtn = document.getElementById("cancelEditBtn");
@@ -21,7 +44,64 @@ const importInput = document.getElementById("importInput");
 
 const state = {
   companies: loadCompanies(),
+  settings: loadSettings(),
 };
+
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem(settingsKey);
+    if (!raw) return { ...defaultSettings };
+    return { ...defaultSettings, ...JSON.parse(raw) };
+  } catch {
+    return { ...defaultSettings };
+  }
+}
+
+function saveSettings(settings) {
+  localStorage.setItem(settingsKey, JSON.stringify(settings));
+  state.settings = settings;
+}
+
+function updateSettingsUI() {
+  const s = state.settings;
+  aiEndpointInput.value = s.aiEndpoint;
+  aiDeploymentInput.value = s.aiDeployment;
+  aiVersionInput.value = s.aiVersion;
+  aiKeyInput.value = s.aiKey;
+  speechRegionInput.value = s.speechRegion;
+  speechKeyInput.value = s.speechKey;
+}
+
+openSettingsBtn.addEventListener("click", () => {
+  updateSettingsUI();
+  settingsModal.hidden = false;
+});
+
+closeSettingsBtn.addEventListener("click", () => {
+  settingsModal.hidden = true;
+});
+
+settingsForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const newSettings = {
+    aiEndpoint: aiEndpointInput.value.trim(),
+    aiDeployment: aiDeploymentInput.value.trim(),
+    aiVersion: aiVersionInput.value.trim(),
+    aiKey: aiKeyInput.value.trim(),
+    speechRegion: speechRegionInput.value.trim(),
+    speechKey: speechKeyInput.value.trim(),
+  };
+  saveSettings(newSettings);
+  settingsModal.hidden = true;
+  alert("Settings saved locally.");
+});
+
+resetSettingsBtn.addEventListener("click", () => {
+  if (confirm("Reset all settings to defaults? Keys will be cleared.")) {
+    state.settings = { ...defaultSettings };
+    updateSettingsUI();
+  }
+});
 
 function loadCompanies() {
   try {

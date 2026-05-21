@@ -45,21 +45,68 @@ body::before {
   mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.5), transparent 92%);
 }
 
-.app-shell {
-  width: min(var(--max-width), calc(100% - 32px));
-  margin: 0 auto;
-  padding: 40px 0 56px;
+.hero-actions {
+  margin-top: 24px;
 }
 
-.hero {
+/* Modal Styling */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 24px;
-  align-items: end;
-  padding: 32px 0 20px;
+  place-items: center;
+  padding: 20px;
+  background: rgba(2, 6, 23, 0.85);
+  backdrop-filter: blur(12px);
 }
 
-.eyebrow {
+.modal[hidden] {
+  display: none;
+}
+
+.modal-content {
+  background: var(--bg-soft);
+  width: min(100%, 700px);
+  padding: 32px;
+  border-radius: var(--radius);
+  border: 1px solid var(--panel-border);
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.modal-lede {
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin-bottom: 24px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.close-btn:hover {
+  color: var(--text);
+}
+
+.panel {
   margin: 0 0 12px;
   color: var(--accent);
   text-transform: uppercase;

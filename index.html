@@ -21,12 +21,58 @@
             Capture the company name and a short note now. Later, this can grow into interview prep,
             attachment management, and LLM-assisted workflow support.
           </p>
+          <div class="hero-actions">
+            <button type="button" id="openSettingsBtn" class="secondary">Settings (AI Config)</button>
+          </div>
         </div>
         <div class="stats" aria-live="polite">
           <span class="stats-label">Saved companies</span>
           <strong id="companyCount">0</strong>
         </div>
       </section>
+
+      <!-- Settings Modal -->
+      <div id="settingsModal" class="modal" hidden>
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2>AI Settings (GPT-4.1)</h2>
+            <button type="button" id="closeSettingsBtn" class="close-btn">&times;</button>
+          </div>
+          <p class="modal-lede">Configure your Azure OpenAI and Speech credentials. These are stored only in your browser.</p>
+          <form id="settingsForm" class="company-form">
+            <div class="form-grid">
+              <label>
+                <span>Azure OpenAI Endpoint</span>
+                <input id="aiEndpoint" name="aiEndpoint" type="url" placeholder="https://..." required />
+              </label>
+              <label>
+                <span>Deployment Name</span>
+                <input id="aiDeployment" name="aiDeployment" type="text" placeholder="gpt-4.1" required />
+              </label>
+              <label>
+                <span>API Version</span>
+                <input id="aiVersion" name="aiVersion" type="text" placeholder="2025-01-01-preview" required />
+              </label>
+              <label>
+                <span>API Key</span>
+                <input id="aiKey" name="aiKey" type="password" placeholder="Enter Azure OpenAI Key" />
+              </label>
+              <label>
+                <span>Speech Region</span>
+                <input id="speechRegion" name="speechRegion" type="text" placeholder="koreacentral" required />
+              </label>
+              <label>
+                <span>Speech Key</span>
+                <input id="speechKey" name="speechKey" type="password" placeholder="Enter Azure Speech Key" />
+              </label>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="primary">Save Settings</button>
+              <button type="button" id="resetSettingsBtn" class="secondary">Reset to Defaults</button>
+            </div>
+          </form>
+        </div>
+      </div>
 
       <section class="panel">
         <form id="companyForm" class="company-form" autocomplete="off">
