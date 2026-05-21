@@ -198,31 +198,36 @@ button:active {
 
 .data-actions {
   display: flex;
-  gap: 16px;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 .link-btn {
-  background: none;
-  border: none;
-  padding: 0;
+  background: rgba(148, 163, 184, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  padding: 8px 16px;
+  border-radius: 12px;
   color: var(--accent);
   font-size: 0.85rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 4px;
+  text-decoration: none;
+  transition: all 140ms ease;
+  white-space: nowrap;
 }
 
 .link-btn:hover {
+  background: rgba(56, 189, 248, 0.12);
+  border-color: var(--accent);
   color: var(--accent-strong);
-  transform: none;
+  transform: translateY(-2px);
 }
 
 .panel-header {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 24px;
 }
 
