@@ -45,6 +45,48 @@ body::before {
   mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.5), transparent 92%);
 }
 
+.app-shell {
+  width: min(var(--max-width), calc(100% - 32px));
+  margin: 0 auto;
+  padding: 40px 0 56px;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: end;
+  padding: 32px 0 20px;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+h1 {
+  margin: 0 0 16px;
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.lede {
+  margin: 0;
+  color: var(--muted);
+  font-size: 1.15rem;
+  line-height: 1.6;
+  max-width: 580px;
+}
+
 .hero-actions {
   margin-top: 24px;
 }
