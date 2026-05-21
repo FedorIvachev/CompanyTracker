@@ -61,10 +61,6 @@
                 <span>Speech Region</span>
                 <input id="speechRegion" name="speechRegion" type="text" placeholder="koreacentral" required />
               </label>
-              <label>
-                <span>Speech Key</span>
-                <input id="speechKey" name="speechKey" type="password" placeholder="Enter Azure Speech Key" />
-              </label>
             </div>
             <div class="form-actions">
               <button type="submit" class="primary">Save Settings</button>
@@ -135,8 +131,23 @@
               Import CSV
               <input type="file" id="importInput" accept=".csv" class="visually-hidden" />
             </label>
+            <button type="button" id="aiParseBtn" class="primary small">Auto-Parse with AI</button>
           </div>
         </div>
+
+        <!-- AI Status View -->
+        <div id="aiStatus" class="ai-status-panel" hidden>
+          <div class="ai-status-header">
+            <h3>AI Parser (GPT-4.1)</h3>
+            <button type="button" id="closeAiStatus" class="close-btn small">&times;</button>
+          </div>
+          <div id="aiProgress" class="ai-progress-bar">
+            <div class="ai-progress-fill"></div>
+          </div>
+          <p id="aiCurrentTask" class="ai-task-label">Preparing data...</p>
+          <pre id="aiLog" class="ai-log"></pre>
+        </div>
+
         <div id="emptyState" class="empty-state">
           <h3>No companies yet</h3>
           <p>Add your first company above.</p>

@@ -6,8 +6,7 @@ const defaultSettings = {
   aiDeployment: "gpt-4.1",
   aiVersion: "2025-01-01-preview",
   aiKey: "",
-  speechRegion: "koreacentral",
-  speechKey: ""
+  speechRegion: "koreacentral"
 };
 
 const companyForm = document.getElementById("companyForm");
@@ -31,7 +30,6 @@ const aiDeploymentInput = document.getElementById("aiDeployment");
 const aiVersionInput = document.getElementById("aiVersion");
 const aiKeyInput = document.getElementById("aiKey");
 const speechRegionInput = document.getElementById("speechRegion");
-const speechKeyInput = document.getElementById("speechKey");
 
 const submitBtn = document.getElementById("submitBtn");
 const cancelEditBtn = document.getElementById("cancelEditBtn");
@@ -41,6 +39,13 @@ const emptyState = document.getElementById("emptyState");
 const clearAllBtn = document.getElementById("clearAllBtn");
 const exportBtn = document.getElementById("exportBtn");
 const importInput = document.getElementById("importInput");
+
+const aiParseBtn = document.getElementById("aiParseBtn");
+const aiStatus = document.getElementById("aiStatus");
+const aiLog = document.getElementById("aiLog");
+const aiCurrentTask = document.getElementById("aiCurrentTask");
+const aiProgressFill = document.querySelector(".ai-progress-fill");
+const closeAiStatus = document.getElementById("closeAiStatus");
 
 const state = {
   companies: loadCompanies(),
@@ -69,7 +74,6 @@ function updateSettingsUI() {
   aiVersionInput.value = s.aiVersion;
   aiKeyInput.value = s.aiKey;
   speechRegionInput.value = s.speechRegion;
-  speechKeyInput.value = s.speechKey;
 }
 
 openSettingsBtn.addEventListener("click", () => {
@@ -89,7 +93,6 @@ settingsForm.addEventListener("submit", (e) => {
     aiVersion: aiVersionInput.value.trim(),
     aiKey: aiKeyInput.value.trim(),
     speechRegion: speechRegionInput.value.trim(),
-    speechKey: speechKeyInput.value.trim(),
   };
   saveSettings(newSettings);
   settingsModal.hidden = true;
@@ -215,6 +218,102 @@ function createCompanyCard(company) {
 
   return item;
 }
+
+closeAiStatus.addEventListener("click", () => {
+  aiStatus.hidden = true;
+});
+
+async function callAzureOpenAI(messages) {
+  const { aiEndpoint, aiDeployment, aiVersion, aiKey } = state.settings;
+  if (!aiKey) throw new Error("Missing Azure OpenAI API Key in Settings.");
+
+  const url = `${aiEndpoint.replace(/\/+$/, "")}/openai/deployments/${aiDeployment}/chat/completions?api-version=${aiVersion}`;
+  
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "api-key": aiKey
+    },
+    body: JSON.stringify({
+      messages,
+      temperature: 0,
+    })
+  });
+
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.error?.message || "AI Request failed");
+  }
+  return await response.json();
+}
+
+aiParseBtn.addEventListener("click", async () => {
+  if (state.companies.length === 0) {
+    alert("No companies to parse. Export your list to CSV first, or just run this on existing data?");
+    return;
+  }
+
+  aiStatus.hidden = false;
+  aiLog.textContent = "Initializing...\n";
+  aiProgressFill.style.width = "10%";
+  aiCurrentTask.textContent = "Preparing companies for AI analysis...";
+
+  try {
+    const companiesJson = JSON.stringify(state.companies, null, 2);
+    aiLog.textContent += `Processing ${state.companies.length} entries...\n`;
+
+    const prompt = `
+      You are an expert career assistant. I will provide you with a JSON list of companies I am tracking.
+      Your task is to analyze each company and "enrich" the notes if they are sparse, or categorize them.
+      
+      Return a VALID JSON array of company objects. Each object MUST match this schema:
+      {
+        "id": number,
+        "name": string,
+        "website": string,
+        "status": string (Apply/Interview/Offer/Rejected/Wishlist),
+        "notes": string (keep existing info, but enhance with context if possible),
+        "location": string,
+        "otherInfo": string
+      }
+
+      DATA:
+      ${companiesJson}
+    `;
+
+    aiProgressFill.style.width = "40%";
+    aiCurrentTask.textContent = "Calling Azure OpenAI (GPT-4.1)...";
+    
+    const result = await callAzureOpenAI([
+      { role: "system", content: "You are a job tracking assistant that enriches company lists. Always return valid JSON." },
+      { role: "user", content: prompt }
+    ]);
+
+    aiProgressFill.style.width = "80%";
+    aiCurrentTask.textContent = "Parsing response...";
+    
+    const content = result.choices[0].message.content;
+    // Extract JSON if model wrapped it in markdown
+    const jsonMatch = content.match(/\[[\s\S]*\]/);
+    const enrichedData = JSON.parse(jsonMatch ? jsonMatch[0] : content);
+
+    if (Array.isArray(enrichedData)) {
+      state.companies = enrichedData;
+      saveCompanies();
+      renderCompanies();
+      aiLog.textContent += "Success! Companies enriched and saved.\n";
+    }
+
+    aiProgressFill.style.width = "100%";
+    aiCurrentTask.textContent = "Task complete.";
+
+  } catch (error) {
+    aiLog.textContent += `\nERROR: ${error.message}\n`;
+    aiCurrentTask.textContent = "Failed.";
+    aiProgressFill.style.backgroundColor = "var(--danger)";
+  }
+});
 
 function renderCompanies() {
   companyList.replaceChildren();
