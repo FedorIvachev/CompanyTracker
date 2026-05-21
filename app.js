@@ -136,48 +136,45 @@ clearAllBtn.addEventListener("click", () => {
   renderCompanies();
 function escapeCSV(str) {
   if (typeof str !== 'string') return '';
-  const escaped = str.replace(/"/g, '""');
-  return `"${escaped}"`;
+  // Double quotes must be escaped by another double quote
+  // and the whole field must be wrapped in quotes
+  return `"${str.replace(/"/g, '""')}"`;
 }
 
 exportBtn.addEventListener("click", () => {
-  console.log("Export button clicked, current companies:", state.companies.length);
-  
   if (state.companies.length === 0) {
-    alert("No companies saved to export. Please add a company first.");
+    alert("No companies to export. Please add some companies first.");
     return;
   }
 
-  try {
-    const headers = ["Name", "Info", "CreatedAt"];
-    const rows = state.companies.map(c => [
-      escapeCSV(c.name),
-      escapeCSV(c.info),
-      escapeCSV(c.createdAt)
-    ]);
+  // 1. Build CSV string
+  const headers = "Name,Info,CreatedAt";
+  const rows = state.companies.map(c => 
+    `${escapeCSV(c.name)},${escapeCSV(c.info)},${escapeCSV(c.createdAt)}`
+  );
+  const csvString = [headers, ...rows].join("\r\n");
 
-    const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
+  // 2. Use Data URI for maximum compatibility in PWA/Mobile shells
+  // Using base64 to avoid encoding issues with special characters
+  try {
+    const encodedUri = "data:text/csv;charset=utf-8;base64," + btoa(unescape(encodeURIComponent(csvString)));
     
+    // 3. Create a temporary anchor and trigger click
     const link = document.createElement("a");
-    link.href = url;
-    link.download = `companies_export_${new Date().toISOString().split('T')[0]}.csv`;
+    link.href = encodedUri;
+    link.download = `jobs_tracker_${new Date().toISOString().split('T')[0]}.csv`;
     
-    // Append to DOM for better browser support
+    // Required for Firefox and some mobile Browsers
     document.body.appendChild(link);
     link.click();
     
     // Cleanup
     setTimeout(() => {
       document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    }, 100);
-    
-    console.log("Export successful");
-  } catch (err) {
-    console.error("Export failed:", err);
-    alert("Export failed. See console for details.");
+    }, 0);
+  } catch (e) {
+    console.error("Export error:", e);
+    alert("Export failed. Try again or check the console.");
   }
 });
 
