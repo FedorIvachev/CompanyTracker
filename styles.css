@@ -196,6 +196,31 @@ button:active {
   border: 1px solid rgba(148, 163, 184, 0.18);
 }
 
+.data-actions {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--panel-border);
+  display: flex;
+  gap: 20px;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.link-btn:hover {
+  color: var(--accent-strong);
+  transform: none;
+}
+
 .panel-header {
   display: flex;
   justify-content: space-between;

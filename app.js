@@ -7,6 +7,8 @@ const companyList = document.getElementById("companyList");
 const companyCount = document.getElementById("companyCount");
 const emptyState = document.getElementById("emptyState");
 const clearAllBtn = document.getElementById("clearAllBtn");
+const exportBtn = document.getElementById("exportBtn");
+const importInput = document.getElementById("importInput");
 
 const state = {
   companies: loadCompanies(),
@@ -132,6 +134,86 @@ clearAllBtn.addEventListener("click", () => {
   state.companies = [];
   saveCompanies();
   renderCompanies();
+function escapeCSV(str) {
+  if (typeof str !== 'string') return '';
+  const escaped = str.replace(/"/g, '""');
+  return `"${escaped}"`;
+}
+
+exportBtn.addEventListener("click", () => {
+  if (state.companies.length === 0) {
+    alert("No data to export.");
+    return;
+  }
+
+  const headers = ["Name", "Info", "CreatedAt"];
+  const rows = state.companies.map(c => [
+    escapeCSV(c.name),
+    escapeCSV(c.info),
+    escapeCSV(c.createdAt)
+  ]);
+
+  const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `companies_export_${new Date().toISOString().split('T')[0]}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+});
+
+importInput.addEventListener("change", (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const text = e.target.result;
+    const lines = text.split("\n").filter(line => line.trim() !== "");
+    
+    // Simple CSV parser (assuming headers: Name, Info, CreatedAt)
+    // This handles quoted values with double-quotes
+    const newData = [];
+    const rows = lines.slice(1); // Skip header
+
+    for (const row of rows) {
+      // Regex to split by comma but ignore commas inside quotes
+      const cells = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+      
+      if (cells && cells.length >= 2) {
+        const name = cells[0].replace(/^"|"$/g, '').replace(/""/g, '"');
+        const info = cells[1].replace(/^"|"$/g, '').replace(/""/g, '"');
+        const createdAt = cells[2] 
+          ? cells[2].replace(/^"|"$/g, '').replace(/""/g, '"') 
+          : new Date().toISOString();
+
+        newData.push({
+          id: crypto.randomUUID(),
+          name,
+          info,
+          createdAt
+        });
+      }
+    }
+
+    if (newData.length > 0) {
+      if (confirm(`Import ${newData.length} companies? This will add to your existing list.`)) {
+        state.companies = [...newData, ...state.companies];
+        saveCompanies();
+        renderCompanies();
+      }
+    } else {
+      alert("No valid data found in CSV. Expected headers: Name, Info, CreatedAt");
+    }
+    importInput.value = ""; // Reset input
+  };
+  reader.readAsText(file);
+});
+
 });
 
 if ("serviceWorker" in navigator) {
