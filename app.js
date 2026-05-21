@@ -141,29 +141,44 @@ function escapeCSV(str) {
 }
 
 exportBtn.addEventListener("click", () => {
+  console.log("Export button clicked, current companies:", state.companies.length);
+  
   if (state.companies.length === 0) {
-    alert("No data to export.");
+    alert("No companies saved to export. Please add a company first.");
     return;
   }
 
-  const headers = ["Name", "Info", "CreatedAt"];
-  const rows = state.companies.map(c => [
-    escapeCSV(c.name),
-    escapeCSV(c.info),
-    escapeCSV(c.createdAt)
-  ]);
+  try {
+    const headers = ["Name", "Info", "CreatedAt"];
+    const rows = state.companies.map(c => [
+      escapeCSV(c.name),
+      escapeCSV(c.info),
+      escapeCSV(c.createdAt)
+    ]);
 
-  const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  
-  const link = document.createElement("a");
-  link.setAttribute("href", url);
-  link.setAttribute("download", `companies_export_${new Date().toISOString().split('T')[0]}.csv`);
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+    const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `companies_export_${new Date().toISOString().split('T')[0]}.csv`;
+    
+    // Append to DOM for better browser support
+    document.body.appendChild(link);
+    link.click();
+    
+    // Cleanup
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 100);
+    
+    console.log("Export successful");
+  } catch (err) {
+    console.error("Export failed:", err);
+    alert("Export failed. See console for details.");
+  }
 });
 
 importInput.addEventListener("change", (event) => {
