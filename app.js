@@ -2,7 +2,7 @@ const storageKey = "company-tracker-items";
 const settingsKey = "company-tracker-settings";
 
 const defaultSettings = {
-  aiEndpoint: "https://fj.openai.azure.com/",
+  aiEndpoint: "",
   aiDeployment: "gpt-4.1",
   aiVersion: "2025-01-01-preview",
   aiKey: "",
@@ -225,27 +225,45 @@ closeAiStatus.addEventListener("click", () => {
 
 async function callAzureOpenAI(messages) {
   const { aiEndpoint, aiDeployment, aiVersion, aiKey } = state.settings;
-  if (!aiKey) throw new Error("Missing Azure OpenAI API Key in Settings.");
-
-  const url = `${aiEndpoint.replace(/\/+$/, "")}/openai/deployments/${aiDeployment}/chat/completions?api-version=${aiVersion}`;
-  
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "api-key": aiKey
-    },
-    body: JSON.stringify({
-      messages,
-      temperature: 0,
-    })
-  });
-
-  if (!response.ok) {
-    const err = await response.json();
-    throw new Error(err.error?.message || "AI Request failed");
+  if (!aiKey || !aiEndpoint) {
+    throw new Error("Missing Azure OpenAI Key or Endpoint in Settings.");
   }
-  return await response.json();
+
+  // Ensure endpoint is just the base (e.g., https://res.openai.azure.com)
+  // Strip any accidental path appended to the endpoint
+  const baseUrl = aiEndpoint.split("/openai/")[0].replace(/\/+$/, "");
+  const url = `${baseUrl}/openai/deployments/${aiDeployment}/chat/completions?api-version=${aiVersion}`;
+  
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "api-key": aiKey
+      },
+      body: JSON.stringify({
+        messages,
+        temperature: 0,
+      })
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error("401 Unauthorized: The API Key is invalid or expired.");
+      }
+      if (response.status === 404) {
+        throw new Error("404 Not Found: Check if your Deployment Name and Endpoint are correct.");
+      }
+      const err = await response.json();
+      throw new Error(err.error?.message || `Request failed (${response.status})`);
+    }
+    return await response.json();
+  } catch (err) {
+    if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
+      throw new Error("Network Error: Could not reach the endpoint. Check your Endpoint URL and CORS settings.");
+    }
+    throw err;
+  }
 }
 
 aiImportInput.addEventListener("change", async (e) => {
