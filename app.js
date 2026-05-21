@@ -135,46 +135,53 @@ clearAllBtn.addEventListener("click", () => {
   saveCompanies();
   renderCompanies();
 function escapeCSV(str) {
-  if (typeof str !== 'string') return '';
-  // Double quotes must be escaped by another double quote
-  // and the whole field must be wrapped in quotes
+  if (typeof str !== 'string') return '""';
   return `"${str.replace(/"/g, '""')}"`;
 }
 
 exportBtn.addEventListener("click", () => {
+  console.log("[EXPORT] Button clicked. Checking state...");
+  console.log("[EXPORT] Current company count:", state.companies.length);
+  
   if (state.companies.length === 0) {
-    alert("No companies to export. Please add some companies first.");
+    console.warn("[EXPORT] No data found. Aborting.");
+    alert("The company list is empty. Add a company first!");
     return;
   }
 
-  // 1. Build CSV string
-  const headers = "Name,Info,CreatedAt";
-  const rows = state.companies.map(c => 
-    `${escapeCSV(c.name)},${escapeCSV(c.info)},${escapeCSV(c.createdAt)}`
-  );
-  const csvString = [headers, ...rows].join("\r\n");
-
-  // 2. Use Data URI for maximum compatibility in PWA/Mobile shells
-  // Using base64 to avoid encoding issues with special characters
   try {
-    const encodedUri = "data:text/csv;charset=utf-8;base64," + btoa(unescape(encodeURIComponent(csvString)));
+    console.log("[EXPORT] Generating CSV string...");
+    const headers = "Name,Info,CreatedAt";
+    const rows = state.companies.map((c, i) => {
+      const row = `${escapeCSV(c.name)},${escapeCSV(c.info)},${escapeCSV(c.createdAt)}`;
+      console.log(`[EXPORT] Processing row ${i + 1}:`, c.name);
+      return row;
+    });
     
-    // 3. Create a temporary anchor and trigger click
+    const csvString = [headers, ...rows].join("\r\n");
+    console.log("[EXPORT] CSV Generated (length):", csvString.length);
+
+    // Using a more standard Blob approach which usually works best for CSVs
+    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+    const url = window.URL.createObjectURL(blob);
+    
+    console.log("[EXPORT] Object URL created:", url);
+
     const link = document.createElement("a");
-    link.href = encodedUri;
-    link.download = `jobs_tracker_${new Date().toISOString().split('T')[0]}.csv`;
+    link.setAttribute("href", url);
+    link.setAttribute("download", `jobs_export_${new Date().getTime()}.csv`);
     
-    // Required for Firefox and some mobile Browsers
+    // Some browsers require the link to be in the body
     document.body.appendChild(link);
+    console.log("[EXPORT] Triggering download via link click...");
     link.click();
     
-    // Cleanup
-    setTimeout(() => {
-      document.body.removeChild(link);
-    }, 0);
-  } catch (e) {
-    console.error("Export error:", e);
-    alert("Export failed. Try again or check the console.");
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    console.log("[EXPORT] Done.");
+  } catch (error) {
+    console.error("[EXPORT] FATAL ERROR:", error);
+    alert("Export failed. Check the developer console for logs.");
   }
 });
 
