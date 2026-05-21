@@ -134,6 +134,8 @@ clearAllBtn.addEventListener("click", () => {
   state.companies = [];
   saveCompanies();
   renderCompanies();
+}); // <--- Added missing closing brace and parenthesis here
+
 function escapeCSV(str) {
   if (typeof str !== 'string') return '""';
   return `"${str.replace(/"/g, '""')}"`;
@@ -231,8 +233,6 @@ importInput.addEventListener("change", (event) => {
     importInput.value = ""; // Reset input
   };
   reader.readAsText(file);
-});
-
 });
 
 if ("serviceWorker" in navigator) {
