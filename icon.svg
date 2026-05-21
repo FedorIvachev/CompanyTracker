@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Company Tracker">
+  <defs>
+    <linearGradient id="g" x1="96" y1="64" x2="416" y2="448" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7dd3fc" />
+      <stop offset="1" stop-color="#0ea5e9" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="#08111f" />
+  <path d="M120 162c0-18 14-32 32-32h208c18 0 32 14 32 32v188c0 18-14 32-32 32H152c-18 0-32-14-32-32V162Z" fill="url(#g)" />
+  <path d="M184 168h144a16 16 0 0 1 16 16v18a16 16 0 0 1-16 16H184a16 16 0 0 1-16-16v-18a16 16 0 0 1 16-16Zm0 92h144a16 16 0 0 1 16 16v18a16 16 0 0 1-16 16H184a16 16 0 0 1-16-16v-18a16 16 0 0 1 16-16Z" fill="#08111f" opacity="0.9" />
+  <circle cx="176" cy="176" r="10" fill="#08111f" opacity="0.9" />
+  <circle cx="208" cy="176" r="10" fill="#08111f" opacity="0.9" />
+  <circle cx="240" cy="176" r="10" fill="#08111f" opacity="0.9" />
+</svg>

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="description" content="Track companies, notes, and application context in one simple PWA." />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icon.svg" />
+    <link rel="stylesheet" href="styles.css" />
+    <title>Company Tracker</title>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">PWA company tracker</p>
+          <h1>Keep a clean list of companies you search.</h1>
+          <p class="lede">
+            Capture the company name and a short note now. Later, this can grow into interview prep,
+            attachment management, and LLM-assisted workflow support.
+          </p>
+        </div>
+        <div class="stats" aria-live="polite">
+          <span class="stats-label">Saved companies</span>
+          <strong id="companyCount">0</strong>
+        </div>
+      </section>
+
+      <section class="panel">
+        <form id="companyForm" class="company-form" autocomplete="off">
+          <label>
+            <span>Company</span>
+            <input id="companyName" name="companyName" type="text" placeholder="Acme Inc." maxlength="120" required />
+          </label>
+          <label>
+            <span>Info</span>
+            <textarea id="companyInfo" name="companyInfo" rows="4" placeholder="Why it matters, role context, contacts, next step..." maxlength="1000" required></textarea>
+          </label>
+          <div class="form-actions">
+            <button type="submit" class="primary">Add company</button>
+            <button type="button" id="clearAllBtn" class="secondary">Clear all</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Company list</h2>
+          <p>Stored locally in your browser.</p>
+        </div>
+        <div id="emptyState" class="empty-state">
+          <h3>No companies yet</h3>
+          <p>Add your first company above.</p>
+        </div>
+        <ul id="companyList" class="company-list" aria-label="Saved companies"></ul>
+      </section>
+    </main>
+
+    <script src="app.js" type="module"></script>
+  </body>
+</html>
