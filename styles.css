@@ -168,6 +168,14 @@ h1 {
   box-shadow: var(--shadow);
 }
 
+/* Fix nested form appearance in modal */
+.modal .company-form {
+  border: none;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
 .company-form {
   display: grid;
   gap: 16px;
